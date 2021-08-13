@@ -1,13 +1,17 @@
 package ws
 
 import (
+	"encoding/json"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"reflect"
 )
 
 type Session struct {
-	id string //会话ID
+	Id string //会话ID
+
+	Manager *SessionManager
 
 	UserId string // 用户Id，用户登录以后才有
 
@@ -19,11 +23,35 @@ type Session struct {
 
 }
 
+type Message struct {
+	Id string //消息ID
+
+	SourceId string //发送者ID
+
+	TargetId string //目标ID
+
+	Data []byte //数据
+
+	MsgType int //消息类型
+
+}
+
+type ReadExitError struct {
+}
+
+func (p ReadExitError) Error() string {
+	return "Read Exit!"
+}
+
 var upGrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
 }
+
+const (
+	CloseConn = 11
+)
 
 func NewSession(w http.ResponseWriter, r *http.Request) *Session {
 
@@ -38,30 +66,42 @@ func NewSession(w http.ResponseWriter, r *http.Request) *Session {
 	}
 }
 
-type Result struct {
-	Data []byte
-
-	MsgType int
-}
-
-func (p Session) Read(reader func(result Result) error) {
+func (p Session) Read(reader func(msg Message) error) {
 
 	for {
 
 		mt, message, err := p.conn.ReadMessage()
+
 		if err != nil {
 			panic(err.Error())
 		}
 
-		err = reader(Result{
-			Data:    message,
-			MsgType: mt,
-		})
+		var msg = Message{}
+
+		err = json.Unmarshal(message, &msg)
+
+		if err != nil {
+
+			msg = Message{
+				MsgType: mt,
+				Data:    message,
+			}
+
+		}
+
+		err = reader(msg)
+
+		if reflect.TypeOf(err) == reflect.TypeOf(ReadExitError{}) {
+			break
+		}
 
 		if err != nil {
 			panic(err.Error())
 		}
 	}
+
+	log.Infof("用户ID为 %s 已下线", p.UserId)
+	p.Manager.Logout <- &p
 
 }
 
@@ -79,10 +119,10 @@ func (p Session) ReadMsg() string {
 	return string(message)
 }
 
-func (p Session) WriteMsg(mt int, message []byte) error {
-	err := p.conn.WriteMessage(mt, message)
+func (p Session) WriteMsg(msg Message) error {
+
+	err := p.conn.WriteMessage(websocket.TextMessage, msg.Data)
 	if err != nil {
-		log.Error("write:", err)
 		return err
 	}
 	return err
@@ -90,4 +130,5 @@ func (p Session) WriteMsg(mt int, message []byte) error {
 
 func (p Session) Close() {
 	p.conn.Close()
+	p.conn.UnderlyingConn().Close()
 }
