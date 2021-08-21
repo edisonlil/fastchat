@@ -23,7 +23,7 @@ type Session struct {
 
 }
 
-type Message struct {
+type WsMessage struct {
 	Id string //消息ID
 
 	SourceId string //发送者ID
@@ -66,7 +66,7 @@ func NewSession(w http.ResponseWriter, r *http.Request) *Session {
 	}
 }
 
-func (p Session) Read(reader func(msg Message) error) {
+func (p Session) Read(reader func(msg WsMessage) error) {
 
 	for {
 
@@ -76,13 +76,13 @@ func (p Session) Read(reader func(msg Message) error) {
 			panic(err.Error())
 		}
 
-		var msg = Message{}
+		var msg = WsMessage{}
 
 		err = json.Unmarshal(message, &msg)
 
 		if err != nil {
 
-			msg = Message{
+			msg = WsMessage{
 				MsgType: mt,
 				Data:    message,
 			}
@@ -119,7 +119,7 @@ func (p Session) ReadMsg() string {
 	return string(message)
 }
 
-func (p Session) WriteMsg(msg Message) error {
+func (p Session) WriteMsg(msg WsMessage) error {
 
 	err := p.conn.WriteMessage(websocket.TextMessage, msg.Data)
 	if err != nil {

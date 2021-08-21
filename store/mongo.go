@@ -14,8 +14,7 @@ var (
 )
 
 const (
-	url = ""
-
+	url      = ""
 	database = "fastChat"
 )
 

@@ -29,9 +29,8 @@ FastChat 与系统业务无关，仅仅作为一个服务端 & 客户端的消�
 
 ### FastChat 发布消息流程
 
-TODO...
-
-
+server -> control -> service -> session_manger -> session -> client
+                                |
 
 
 

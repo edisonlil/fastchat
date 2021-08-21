@@ -20,7 +20,7 @@ func run(w http.ResponseWriter, r *http.Request) {
 	session := NewSession(w, r)
 
 	//2.Create Session Manager
-	sessionManager := NewSessionManager()
+	sessionManager := InitSessionManager()
 
 	//3.异步启动监听器
 	go sessionManager.StartListen()
@@ -30,7 +30,7 @@ func run(w http.ResponseWriter, r *http.Request) {
 	session.Manager = sessionManager
 
 	//5.异步读取信息
-	go session.Read(func(msg Message) error {
+	go session.Read(func(msg WsMessage) error {
 
 		var err error
 		if msg.MsgType == CloseConn {
