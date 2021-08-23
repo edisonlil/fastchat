@@ -1,18 +1,26 @@
 package main
 
 import (
-	"fastchat/servers/ws"
+	"fastchat/auth"
 	"fastchat/store"
+	"fmt"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 
-	MongoInit()
+	token, _ := auth.CreateJwtToken(map[string]interface{}{
 
-	StartWeb()
+		"id": 123,
+	})
 
-	ws.StartWebSocket(":8000")
+	fmt.Println(token)
+
+	//MongoInit()
+	//
+	//StartWeb()
+	//
+	//ws.StartWebSocket(":8000")
 }
 
 func MongoInit() {
