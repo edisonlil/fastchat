@@ -1,4 +1,4 @@
-package base
+package domain
 
 //Message FastChat 消息实体
 type Message struct {

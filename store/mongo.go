@@ -31,13 +31,17 @@ func InitMongoClient() {
 	}
 }
 
+func GetDatabase() *mongo.Database {
+	return client.Database(database)
+}
+
 func GetColl(coll string) *mongo.Collection {
 	return client.Database(database).Collection(coll)
 }
 
-func InsertOne(coll *mongo.Collection, m interface{}) (interface{}, error) {
+func InsertOne(coll string, m interface{}) (interface{}, error) {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	res, err := coll.InsertOne(ctx, m)
+	res, err := GetColl(coll).InsertOne(ctx, m)
 	if err != nil {
 		fmt.Println("mongodb 添加数据异常", err)
 	}
@@ -50,14 +54,14 @@ func GetContext() context.Context {
 	return ctx
 }
 
-func FindOne(coll *mongo.Collection, filter interface{}, info interface{}) error {
+func FindOne(coll string, filter interface{}, info interface{}) error {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	err := coll.FindOne(ctx, filter).Decode(info)
+	err := GetColl(coll).FindOne(ctx, filter).Decode(info)
 	return err
 }
 
-func FindAll(coll *mongo.Collection, filter interface{}) (*mongo.Cursor, error) {
+func FindAll(coll string, filter interface{}) (*mongo.Cursor, error) {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	find, err := coll.Find(ctx, filter)
+	find, err := GetColl(coll).Find(ctx, filter)
 	return find, err
 }

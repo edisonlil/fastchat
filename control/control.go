@@ -1,7 +1,7 @@
 package control
 
 import (
-	"fastchat/base"
+	"fastchat/domain"
 	"fastchat/servers/ws"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -10,7 +10,7 @@ import (
 //SendMsg 发送消息
 func SendMsg(c *gin.Context) {
 
-	msg := base.Message{
+	msg := domain.Message{
 
 		Id:   "1",
 		Data: []byte(c.GetString("Data")),
