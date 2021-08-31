@@ -45,8 +45,7 @@ func InsertOne(coll string, m interface{}) (interface{}, error) {
 	if err != nil {
 		fmt.Println("mongodb 添加数据异常", err)
 	}
-	id := res.InsertedID
-	return id, err
+	return res, err
 }
 
 func GetContext() context.Context {

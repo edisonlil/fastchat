@@ -11,28 +11,35 @@ const (
 type Result struct {
 	Code int
 
+	Success bool
+
 	Msg string
 
 	Data interface{}
 }
 
-func ResultSuccess(msg string) *Result {
+func ResultSuccess() *Result {
 
 	return &Result{
-		Code: SUCCESS,
-		Msg:  msg,
+		Code:    SUCCESS,
+		Success: true,
 	}
 }
 
-func ResultFail(msg string) *Result {
+func ResultFail() *Result {
 
 	return &Result{
-		Code: FAIL,
-		Msg:  msg,
+		Code:    FAIL,
+		Success: false,
 	}
 }
 
 func (p *Result) SetMsg(msg string) *Result {
 	p.Msg = msg
+	return p
+}
+
+func (p *Result) SetData(data interface{}) *Result {
+	p.Data = data
 	return p
 }

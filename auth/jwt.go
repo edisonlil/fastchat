@@ -7,17 +7,18 @@ import (
 const JwtSecretKey = "fastChat-jwt"
 
 type JwtClaims struct {
+	UserId string
 
-	//TODO...
+	Namespace string
 
-	exp int64 //过期时间
+	Exp int64 //过期时间
 }
 
 //CreateJwtToken 创建JWT字符串
 func CreateJwtToken(claims JwtClaims) (string, error) {
 
 	rawClaims := jwt.MapClaims{
-		"exp": claims.exp,
+		"exp": claims.Exp,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, rawClaims)
@@ -43,6 +44,6 @@ func ParseJwtToken(s string) (*JwtClaims, error) {
 	rawClaims := result.Claims.(jwt.MapClaims)
 
 	return &JwtClaims{
-		exp: rawClaims["exp"].(int64),
+		Exp: rawClaims["exp"].(int64),
 	}, nil
 }
