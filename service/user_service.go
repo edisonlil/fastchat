@@ -11,6 +11,7 @@ import (
 
 const MongoColl = "user"
 
+//UserLogin 用户登录
 func UserLogin(user domain.User) *base.Result {
 
 	res := UserRegister(user)
@@ -18,15 +19,23 @@ func UserLogin(user domain.User) *base.Result {
 	if !res.Success {
 		return res
 	}
-
 	data := res.Data.(domain.User)
-	auth.CreateJwtToken(auth.JwtClaims{
+
+	token, err := auth.CreateJwtToken(auth.JwtClaims{
 		UserId:    data.Id,
 		Namespace: data.Namespace,
-		Exp:       time.Now().Unix(), //TODO 需改为两小时后
+		Exp:       time.Now().Add(2 * time.Hour).Unix(), // Jwt Token 两小时后过期
 	})
 
-	return res
+	if err != nil {
+		return base.ResultFail().SetMsg("Create Token Error：" + err.Error())
+	}
+
+	//返回给客户端信息
+	return base.ResultSuccess().SetData(map[string]interface{}{
+		"Token": token,
+		"Users": data,
+	})
 }
 
 func UserRegister(user domain.User) *base.Result {
