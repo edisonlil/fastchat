@@ -16,6 +16,8 @@ func StartWebSocket(addr string) {
 
 func run(w http.ResponseWriter, r *http.Request) {
 
+	//过滤器
+
 	//1.获取Session
 	session := NewSession(w, r)
 

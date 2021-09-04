@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fastchat/auth"
+	"fastchat/filter"
 	"fastchat/store"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -9,13 +9,17 @@ import (
 
 func main() {
 
-	token, _ := auth.CreateJwtToken(map[string]interface{}{
+	wsFilterChain := filter.WsFilterChain
 
-		"id": 123,
+	wsFilterChain.AddFilter(func(chain *filter.FilterChain) {
+		fmt.Println("1")
 	})
 
-	fmt.Println(token)
+	wsFilterChain.AddFilter(func(chain *filter.FilterChain) {
+		fmt.Println("2")
+	})
 
+	wsFilterChain.DoFilter()
 	//MongoInit()
 	//
 	//StartWeb()
