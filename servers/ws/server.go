@@ -18,25 +18,25 @@ func StartWebSocket(addr string) {
 	http.ListenAndServe(addr, nil)
 }
 
-func InitFilter(chain *filter.FilterChain) {
+func InitFilter(chain *filter.FilterChain, ctx *filter.HttpContext) {
 
 	//Jwt鉴权
 	chain.AddFilter(func(chain *filter.FilterChain) error {
 
-		token := chain.Request.Header.Get("Authorization")
+		token := ctx.Request.Header.Get("Authorization")
 
 		claims, err := auth.ParseJwtToken(token)
 
 		if err != nil {
 			log.Error(err.Error())
-			chain.Response.Write([]byte(err.Error()))
-			chain.Response.WriteHeader(500)
+			ctx.Response.Write([]byte(err.Error()))
+			ctx.Response.WriteHeader(500)
 
 			//TODO 错误则请求返回失败,不执行下一个过滤器
 			return err
 		}
 
-		context.WithValue(chain.Ctx, "UserDetail", service.GetUserById(claims.UserId))
+		context.WithValue(ctx.Ctx, "UserDetail", service.GetUserById(claims.UserId))
 
 		return nil
 	})
@@ -46,10 +46,10 @@ func InitFilter(chain *filter.FilterChain) {
 func run(w http.ResponseWriter, r *http.Request) {
 
 	//过滤器
-	wsFilterChain := filter.NewFilterChain(w, r)
+	wsFilterChain := filter.NewFilterChain()
 
 	//初始化过滤器
-	InitFilter(wsFilterChain)
+	InitFilter(wsFilterChain, filter.NewHttpContext(w, r))
 
 	//执行过滤器
 	err := wsFilterChain.DoFilter()

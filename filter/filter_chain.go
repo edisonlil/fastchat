@@ -5,23 +5,32 @@ import (
 	"net/http"
 )
 
-func NewFilterChain(w http.ResponseWriter, r *http.Request) *FilterChain {
+func NewFilterChain() *FilterChain {
 
 	return &FilterChain{
-		Filters:  make([]func(chain *FilterChain) error, 10),
-		Response: w,
-		Request:  r,
+		Filters: make([]func(chain *FilterChain) error, 10),
 	}
 }
 
-//FilterChain 过滤链
-type FilterChain struct {
+type HttpContext struct {
 	Ctx context.Context
 
 	Response http.ResponseWriter
 
 	Request *http.Request
+}
 
+func NewHttpContext(w http.ResponseWriter, r *http.Request) *HttpContext {
+
+	return &HttpContext{
+		Ctx:      context.TODO(),
+		Request:  r,
+		Response: w,
+	}
+}
+
+//FilterChain 过滤链
+type FilterChain struct {
 	Filters []func(chain *FilterChain) error //过滤链
 
 }
