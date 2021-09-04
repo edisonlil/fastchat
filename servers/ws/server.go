@@ -1,6 +1,11 @@
 package ws
 
 import (
+	"context"
+	"fastchat/auth"
+	"fastchat/filter"
+	"fastchat/service"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -11,14 +16,56 @@ func StartWebSocket(addr string) {
 	http.HandleFunc(wsPattern, run)
 
 	http.ListenAndServe(addr, nil)
+}
+
+func InitFilter(chain *filter.FilterChain) {
+
+	//Jwt鉴权
+	chain.AddFilter(func(chain *filter.FilterChain) error {
+
+		token := chain.Request.Header.Get("Authorization")
+
+		claims, err := auth.ParseJwtToken(token)
+
+		if err != nil {
+			log.Error(err.Error())
+			chain.Response.Write([]byte(err.Error()))
+			chain.Response.WriteHeader(500)
+
+			//TODO 错误则请求返回失败,不执行下一个过滤器
+			return err
+		}
+
+		context.WithValue(chain.Ctx, "UserDetail", service.GetUserById(claims.UserId))
+
+		return nil
+	})
 
 }
 
 func run(w http.ResponseWriter, r *http.Request) {
 
 	//过滤器
+	wsFilterChain := filter.NewFilterChain(w, r)
 
-	//1.获取Session
+	//初始化过滤器
+	InitFilter(wsFilterChain)
+
+	//执行过滤器
+	err := wsFilterChain.DoFilter()
+
+	if err != nil {
+		return
+	}
+
+	//执行
+	servlet(w, r)
+
+}
+
+func servlet(w http.ResponseWriter, r *http.Request) {
+
+	//1.获取Session && 升级为ws
 	session := NewSession(w, r)
 
 	//2.Create Session Manager

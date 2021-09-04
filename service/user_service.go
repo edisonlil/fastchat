@@ -23,6 +23,7 @@ func UserLogin(user domain.User) *base.Result {
 
 	token, err := auth.CreateJwtToken(auth.JwtClaims{
 		UserId:    data.Id,
+		OpenId:    data.OpenId,
 		Namespace: data.Namespace,
 		Exp:       time.Now().Add(2 * time.Hour).Unix(), // Jwt Token 两小时后过期
 	})
@@ -58,7 +59,7 @@ func UserRegister(user domain.User) *base.Result {
 //GetUserByNameSpaceAndOpenId 获取指定命名空间的OpenId用户
 func GetUserByNameSpaceAndOpenId(namespace string, openId string) *domain.User {
 
-	user := domain.User{}
+	user := &domain.User{}
 
 	err := store.FindOne(MongoColl, map[string]interface{}{
 		"namespace": namespace,
@@ -69,5 +70,17 @@ func GetUserByNameSpaceAndOpenId(namespace string, openId string) *domain.User {
 		log.Error(err.Error())
 	}
 
-	return &user
+	return user
+}
+
+func GetUserById(id string) *domain.User {
+	user := &domain.User{}
+
+	err := store.FindOneById(MongoColl, id, user)
+
+	if err != nil {
+		log.Error(err.Error())
+	}
+
+	return user
 }

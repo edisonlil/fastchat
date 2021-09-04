@@ -9,6 +9,8 @@ const JwtSecretKey = "fastChat-jwt"
 type JwtClaims struct {
 	UserId string
 
+	OpenId string
+
 	Namespace string
 
 	Exp int64 //过期时间

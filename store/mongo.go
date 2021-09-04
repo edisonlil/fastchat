@@ -59,6 +59,15 @@ func FindOne(coll string, filter interface{}, info interface{}) error {
 	return err
 }
 
+func FindOneById(coll string, id string, info interface{}) error {
+
+	err := FindOne(coll, map[string]interface{}{
+		"id": id,
+	}, info)
+
+	return err
+}
+
 func FindAll(coll string, filter interface{}) (*mongo.Cursor, error) {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	find, err := GetColl(coll).Find(ctx, filter)

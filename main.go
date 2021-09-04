@@ -1,25 +1,12 @@
 package main
 
 import (
-	"fastchat/filter"
 	"fastchat/store"
-	"fmt"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 
-	wsFilterChain := filter.WsFilterChain
-
-	wsFilterChain.AddFilter(func(chain *filter.FilterChain) {
-		fmt.Println("1")
-	})
-
-	wsFilterChain.AddFilter(func(chain *filter.FilterChain) {
-		fmt.Println("2")
-	})
-
-	wsFilterChain.DoFilter()
 	//MongoInit()
 	//
 	//StartWeb()
