@@ -1,8 +1,8 @@
 package ws
 
 import (
-	"context"
 	"fastchat/auth"
+	"fastchat/domain"
 	"fastchat/filter"
 	"fastchat/service"
 	log "github.com/sirupsen/logrus"
@@ -18,7 +18,7 @@ func StartWebSocket(addr string) {
 	http.ListenAndServe(addr, nil)
 }
 
-func InitFilter(chain *filter.FilterChain, ctx *filter.HttpContext) {
+func InitFilter(chain *filter.FilterChain, ctx *HttpContext) {
 
 	//Jwt鉴权
 	chain.AddFilter(func(chain *filter.FilterChain) error {
@@ -31,12 +31,12 @@ func InitFilter(chain *filter.FilterChain, ctx *filter.HttpContext) {
 			log.Error(err.Error())
 			ctx.Response.Write([]byte(err.Error()))
 			ctx.Response.WriteHeader(500)
-
-			//TODO 错误则请求返回失败,不执行下一个过滤器
+			//错误则请求返回失败,不执行下一个过滤器
 			return err
 		}
 
-		context.WithValue(ctx.Ctx, "UserDetail", service.GetUserById(claims.UserId))
+		//设置当前用户
+		ctx.SetCurrentUser(service.GetUserById(claims.UserId))
 
 		return nil
 	})
@@ -48,8 +48,9 @@ func run(w http.ResponseWriter, r *http.Request) {
 	//过滤器
 	wsFilterChain := filter.NewFilterChain()
 
+	httpContext := NewHttpContext(w, r)
 	//初始化过滤器
-	InitFilter(wsFilterChain, filter.NewHttpContext(w, r))
+	InitFilter(wsFilterChain, httpContext)
 
 	//执行过滤器
 	err := wsFilterChain.DoFilter()
@@ -58,15 +59,14 @@ func run(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//执行
-	servlet(w, r)
+	servlet(w, r, httpContext)
 
 }
 
-func servlet(w http.ResponseWriter, r *http.Request) {
+func servlet(w http.ResponseWriter, r *http.Request, ctx *HttpContext) {
 
 	//1.获取Session && 升级为ws
-	session := NewSession(w, r)
+	session := NewSession(w, r, ctx)
 
 	//2.Create Session Manager
 	sessionManager := InitSessionManager()
@@ -79,7 +79,7 @@ func servlet(w http.ResponseWriter, r *http.Request) {
 	session.Manager = sessionManager
 
 	//5.异步读取信息
-	go session.Read(func(msg WsMessage) error {
+	go session.Read(func(msg *domain.Message) error {
 
 		var err error
 		if msg.MsgType == CloseConn {

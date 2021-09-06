@@ -8,16 +8,15 @@ type Message struct {
 
 	MsgLength uint16 //消息长度
 
-	SenderAppId string //发送者Id
+	Namespace string //命名空间
 
-	SenderOpenId string //发送者平台ID
+	SenderOpenId string //发送者ID
 
 	SendTime uint64 //发送时间
 
 	AcceptTime uint64 //消息接受时间
 
-	AcceptAppId string //接收者平台ID
-
 	AcceptOpenId string //接收者平台用户ID
 
+	MsgType int
 }

@@ -2,38 +2,28 @@ package ws
 
 import (
 	"encoding/json"
+	"fastchat/domain"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"reflect"
+	"time"
 )
 
 type Session struct {
 	Id string //会话ID
 
-	Manager *SessionManager
-
 	UserId string // 用户Id，用户登录以后才有
+
+	Healthy int64 // 用户上次心跳时间
+
+	LoginTime int64 // 登录时间 登录以后才有
 
 	conn *websocket.Conn // 用户连接
 
-	Healthy uint64 // 用户上次心跳时间
+	Ctx *HttpContext //上下文
 
-	LoginTime uint64 // 登录时间 登录以后才有
-
-}
-
-type WsMessage struct {
-	Id string //消息ID
-
-	SourceId string //发送者ID
-
-	TargetId string //目标ID
-
-	Data []byte //数据
-
-	MsgType int //消息类型
-
+	Manager *SessionManager //会话管理器
 }
 
 type ReadExitError struct {
@@ -53,7 +43,7 @@ const (
 	CloseConn = 11
 )
 
-func NewSession(w http.ResponseWriter, r *http.Request) *Session {
+func NewSession(w http.ResponseWriter, r *http.Request, ctx *HttpContext) *Session {
 
 	conn, err := upGrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -62,11 +52,15 @@ func NewSession(w http.ResponseWriter, r *http.Request) *Session {
 	}
 
 	return &Session{
-		conn: conn,
+		UserId:    ctx.GetCurrentUser().Id,
+		Healthy:   time.Now().Unix(),
+		LoginTime: time.Now().Unix(),
+		conn:      conn,
+		Ctx:       ctx,
 	}
 }
 
-func (p Session) Read(reader func(msg WsMessage) error) {
+func (p Session) Read(reader func(msg *domain.Message) error) {
 
 	for {
 
@@ -76,17 +70,13 @@ func (p Session) Read(reader func(msg WsMessage) error) {
 			panic(err.Error())
 		}
 
-		var msg = WsMessage{}
+		var msg = &domain.Message{}
 
 		err = json.Unmarshal(message, &msg)
 
 		if err != nil {
-
-			msg = WsMessage{
-				MsgType: mt,
-				Data:    message,
-			}
-
+			msg.Data = message
+			msg.MsgType = mt
 		}
 
 		err = reader(msg)
@@ -119,7 +109,7 @@ func (p Session) ReadMsg() string {
 	return string(message)
 }
 
-func (p Session) WriteMsg(msg WsMessage) error {
+func (p Session) WriteMsg(msg *domain.Message) error {
 
 	err := p.conn.WriteMessage(websocket.TextMessage, msg.Data)
 	if err != nil {
