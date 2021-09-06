@@ -1,0 +1,17 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Golang FastChat API",
+        "contact": {
+            "name": "API Support",
+            "email": "edisonlil@163.com"
+        },
+        "version": "1.0"
+    },
+    "host": "127.0.0.1:8080",
+    "paths": {
+        "/ping": {
+            "get": {}
+        }
+    }
+}

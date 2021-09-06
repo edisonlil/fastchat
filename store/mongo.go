@@ -14,7 +14,7 @@ var (
 )
 
 const (
-	url      = ""
+	url      = "mongodb://root:123@8.134.53.178:27017/?authSource=admin"
 	database = "fastChat"
 )
 

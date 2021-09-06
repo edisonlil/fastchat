@@ -1,0 +1,11 @@
+host: 127.0.0.1:8080
+info:
+  contact:
+    email: edisonlil@163.com
+    name: API Support
+  title: Golang FastChat API
+  version: "1.0"
+paths:
+  /ping:
+    get: {}
+swagger: "2.0"
