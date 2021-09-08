@@ -26,8 +26,8 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/ping": {
-            "get": {}
+        "/user/login": {
+            "post": {}
         }
     }
 }`

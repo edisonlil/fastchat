@@ -12,7 +12,7 @@ import (
 const MongoColl = "user"
 
 //UserLogin 用户登录
-func UserLogin(user domain.User) *base.Result {
+func UserLogin(user *domain.User) *base.Result {
 
 	res := UserRegister(user)
 
@@ -39,7 +39,7 @@ func UserLogin(user domain.User) *base.Result {
 	})
 }
 
-func UserRegister(user domain.User) *base.Result {
+func UserRegister(user *domain.User) *base.Result {
 
 	data := GetUserByNameSpaceAndOpenId(user.Namespace, user.OpenId)
 

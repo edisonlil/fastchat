@@ -34,7 +34,7 @@ func InitSessionManager() *SessionManager {
 	return Manager
 }
 
-func (p SessionManager) eventRegister(session *Session) {
+func (p *SessionManager) eventRegister(session *Session) {
 
 	//获取当前用户
 	user := session.Ctx.GetCurrentUser()
@@ -49,7 +49,7 @@ func (p SessionManager) eventRegister(session *Session) {
 	p.Sessions[session] = true
 }
 
-func (p SessionManager) eventLogout(session *Session) {
+func (p *SessionManager) eventLogout(session *Session) {
 
 	delete(p.Sessions, session)
 
@@ -66,7 +66,7 @@ func (p SessionManager) eventLogout(session *Session) {
 
 //StartListen
 //Start listening for all events of the session manager.
-func (p SessionManager) StartListen() {
+func (p *SessionManager) StartListen() {
 
 	for {
 		select {
@@ -82,17 +82,24 @@ func (p SessionManager) StartListen() {
 
 }
 
-func (p SessionManager) getUserSession(namespace string, userId string) *Session {
+func (p *SessionManager) getUserSession(namespace string, userId string) *Session {
 	return p.NameSpaces[namespace][userId]
 }
 
-//SendMsg
-//发送信息
-func (p SessionManager) SendMsg(msg *domain.Message) error {
-
+//SendMsg 发送信息
+func (p *SessionManager) SendMsg(msg *domain.Message) error {
 	err := p.getUserSession(msg.Namespace, msg.AcceptOpenId).WriteMsg(msg)
 	if err != nil {
 		return err
 	}
 	return err
+}
+
+//SendMsgToNamespace 发送信息
+func (p *SessionManager) SendMsgToNamespace(msg *domain.Message) error {
+	users := p.NameSpaces[msg.Namespace]
+	for _, session := range users {
+		session.WriteMsg(msg)
+	}
+	return nil
 }

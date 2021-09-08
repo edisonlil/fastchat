@@ -6,11 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//Login 用户登录
-func Login(c *gin.Context) {
+// UserLogin 用户登录接口
+// @Router /user/login [post]
+func UserLogin(c *gin.Context) {
 
-	user := domain.User{}
-	c.BindJSON(&user)
+	user := &domain.User{}
+	c.BindJSON(user)
 
 	result := service.UserLogin(user)
 

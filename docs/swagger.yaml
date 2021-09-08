@@ -6,6 +6,6 @@ info:
   title: Golang FastChat API
   version: "1.0"
 paths:
-  /ping:
-    get: {}
+  /user/login:
+    post: {}
 swagger: "2.0"

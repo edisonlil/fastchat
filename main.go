@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fastchat/control"
 	"fastchat/docs"
 	"fastchat/servers/ws"
 	"fastchat/store"
@@ -35,7 +36,7 @@ func StartWeb() {
 
 	apiDocInit(router)
 
-	router.GET("/ping", ping)
+	ginRouter(router)
 
 	router.Run(":8080")
 }
@@ -46,9 +47,8 @@ func apiDocInit(router *gin.Engine) {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 }
 
-// @Router /ping [get]
-func ping(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "pong",
-	})
+func ginRouter(router *gin.Engine) {
+	router.POST("/user/login", control.UserLogin)
+	router.POST("/send-msg", control.SendMsg)
+	router.POST("/namespace/send-msg", control.SendMsgToNamespace)
 }

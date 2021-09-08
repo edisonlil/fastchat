@@ -18,5 +18,5 @@ type Message struct {
 
 	AcceptOpenId string //接收者平台用户ID
 
-	MsgType int
+	MsgType int //消息类型
 }

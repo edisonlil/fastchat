@@ -3,6 +3,7 @@ package ws
 import (
 	"fastchat/auth"
 	"fastchat/domain"
+	"fastchat/err"
 	"fastchat/filter"
 	"fastchat/service"
 	log "github.com/sirupsen/logrus"
@@ -24,6 +25,13 @@ func InitFilter(chain *filter.FilterChain, ctx *HttpContext) {
 	chain.AddFilter(func(chain *filter.FilterChain) error {
 
 		token := ctx.Request.Header.Get("Authorization")
+
+		if token == "" {
+			ctx.Response.Write([]byte("未携带Token..."))
+			return &err.UnauthorizedError{
+				Msg: "Token Unauthorized",
+			}
+		}
 
 		claims, err := auth.ParseJwtToken(token)
 
