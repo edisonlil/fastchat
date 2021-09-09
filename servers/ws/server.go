@@ -2,6 +2,7 @@ package ws
 
 import (
 	"fastchat/auth"
+	"fastchat/config"
 	"fastchat/domain"
 	"fastchat/err"
 	"fastchat/filter"
@@ -12,11 +13,13 @@ import (
 
 const wsPattern = "/ws"
 
-func StartWebSocket(addr string) {
+var prop = config.GetWebsocketProp()
 
-	http.HandleFunc(wsPattern, run)
+func StartWebSocket() {
 
-	http.ListenAndServe(addr, nil)
+	http.HandleFunc(prop.Pattern, run)
+
+	http.ListenAndServe(prop.Addr, nil)
 }
 
 func InitFilter(chain *filter.FilterChain, ctx *HttpContext) {

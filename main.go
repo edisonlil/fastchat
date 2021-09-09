@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fastchat/config"
+	_ "fastchat/config"
 	"fastchat/control"
 	"fastchat/docs"
 	"fastchat/servers/ws"
@@ -9,6 +11,8 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 )
+
+var prop = config.GetHttpProp()
 
 // @title Golang FastChat API
 // @version 1.0
@@ -22,7 +26,7 @@ func main() {
 
 	StartWeb()
 
-	ws.StartWebSocket(":8000")
+	ws.StartWebSocket()
 
 }
 
@@ -38,7 +42,7 @@ func StartWeb() {
 
 	ginRouter(router)
 
-	router.Run(":8080")
+	router.Run(prop.Addr)
 }
 
 func apiDocInit(router *gin.Engine) {

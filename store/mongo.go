@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fastchat/config"
 	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -13,16 +14,13 @@ var (
 	client *mongo.Client
 )
 
-const (
-	url      = "mongodb://root:123@8.134.53.178:27017/?authSource=admin"
-	database = "fastChat"
-)
+var prop = config.GetMongoProp()
 
 func InitMongoClient() {
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
-	conn, err := mongo.Connect(ctx, options.Client().ApplyURI(url))
+	conn, err := mongo.Connect(ctx, options.Client().ApplyURI(prop.Url))
 
 	client = conn
 
@@ -32,11 +30,11 @@ func InitMongoClient() {
 }
 
 func GetDatabase() *mongo.Database {
-	return client.Database(database)
+	return client.Database(prop.Database)
 }
 
 func GetColl(coll string) *mongo.Collection {
-	return client.Database(database).Collection(coll)
+	return GetDatabase().Collection(coll)
 }
 
 func InsertOne(coll string, m interface{}) (interface{}, error) {
