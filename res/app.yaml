@@ -2,7 +2,7 @@ mongo:
   url: mongodb://root:123@8.134.53.178:27017/?authSource=admin
   username: root
   password: 123
-
+  database: fastChat
 
 server:
   http:
