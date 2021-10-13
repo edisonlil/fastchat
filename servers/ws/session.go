@@ -17,9 +17,9 @@ type Session struct {
 
 	conn *websocket.Conn // 用户连接
 
-	Healthy uint64 // 用户上次心跳时间
+	Healthy int64 // 用户上次心跳时间
 
-	LoginTime uint64 // 登录时间 登录以后才有
+	LoginTime int64 // 登录时间 登录以后才有
 
 }
 
@@ -50,7 +50,8 @@ var upGrader = websocket.Upgrader{
 }
 
 const (
-	CloseConn = 11
+	CloseConn = 11 //关闭Session链接
+	Healthy   = 12 //健康检测
 )
 
 func NewSession(w http.ResponseWriter, r *http.Request) *Session {

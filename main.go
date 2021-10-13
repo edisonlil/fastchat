@@ -1,17 +1,18 @@
 package main
 
 import (
+	"fastchat/servers/ws"
 	"fastchat/store"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 
-	//MongoInit()
-	//
-	//StartWeb()
-	//
-	//ws.StartWebSocket(":8000")
+	MongoInit()
+
+	StartWeb()
+
+	ws.StartWebSocket(":8000")
 }
 
 func MongoInit() {

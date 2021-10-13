@@ -7,6 +7,7 @@ import (
 	"fastchat/service"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"time"
 )
 
 const wsPattern = "/ws"
@@ -84,6 +85,11 @@ func servlet(w http.ResponseWriter, r *http.Request) {
 		var err error
 		if msg.MsgType == CloseConn {
 			return ReadExitError{}
+		}
+
+		if msg.MsgType == Healthy {
+			//更新健康检测心跳时间
+			Manager.Users[msg.TargetId].Healthy = time.Now().Unix()
 		}
 
 		err = session.WriteMsg(msg)
