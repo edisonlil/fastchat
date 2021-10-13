@@ -16,7 +16,8 @@ func healthy() {
 	time.AfterFunc(time.Duration(time.Minute*5), func() {
 		//获取当前时间戳
 		now := time.Now().Unix()
-		for _, session := range ws.Manager.Users {
+		for session := range ws.Manager.Sessions {
+			//检测时间 + 5分钟
 			healthy := session.Healthy + ((1000 * 60) * 5)
 			if now > healthy {
 				user := service.GetUserById(session.UserId)
