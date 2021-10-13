@@ -40,7 +40,8 @@ var upGrader = websocket.Upgrader{
 }
 
 const (
-	CloseConn = 11
+	CloseConn = 11 //关闭Session链接
+	Healthy   = 12 //健康检测
 )
 
 func NewSession(w http.ResponseWriter, r *http.Request, ctx *HttpContext) *Session {
