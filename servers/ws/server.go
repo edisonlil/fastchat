@@ -1,8 +1,10 @@
 package ws
 
 import (
-	"context"
 	"fastchat/auth"
+	"fastchat/config"
+	"fastchat/domain"
+	"fastchat/err"
 	"fastchat/filter"
 	"fastchat/service"
 	log "github.com/sirupsen/logrus"
@@ -12,32 +14,41 @@ import (
 
 const wsPattern = "/ws"
 
-func StartWebSocket(addr string) {
+var prop = config.GetWebsocketProp()
 
-	http.HandleFunc(wsPattern, run)
+func StartWebSocket() {
 
-	http.ListenAndServe(addr, nil)
+	http.HandleFunc(prop.Pattern, run)
+
+	http.ListenAndServe(prop.Addr, nil)
 }
 
-func InitFilter(chain *filter.FilterChain) {
+func InitFilter(chain *filter.FilterChain, ctx *HttpContext) {
 
 	//Jwt鉴权
 	chain.AddFilter(func(chain *filter.FilterChain) error {
 
-		token := chain.Request.Header.Get("Authorization")
+		token := ctx.Request.Header.Get("Authorization")
+
+		if token == "" {
+			ctx.Response.Write([]byte("未携带Token..."))
+			return &err.UnauthorizedError{
+				Msg: "Token Unauthorized",
+			}
+		}
 
 		claims, err := auth.ParseJwtToken(token)
 
 		if err != nil {
 			log.Error(err.Error())
-			chain.Response.Write([]byte(err.Error()))
-			chain.Response.WriteHeader(500)
-
-			//TODO 错误则请求返回失败,不执行下一个过滤器
+			ctx.Response.Write([]byte(err.Error()))
+			ctx.Response.WriteHeader(500)
+			//错误则请求返回失败,不执行下一个过滤器
 			return err
 		}
 
-		context.WithValue(chain.Ctx, "UserDetail", service.GetUserById(claims.UserId))
+		//设置当前用户
+		ctx.SetCurrentUser(service.GetUserById(claims.UserId))
 
 		return nil
 	})
@@ -47,10 +58,11 @@ func InitFilter(chain *filter.FilterChain) {
 func run(w http.ResponseWriter, r *http.Request) {
 
 	//过滤器
-	wsFilterChain := filter.NewFilterChain(w, r)
+	wsFilterChain := filter.NewFilterChain()
 
+	httpContext := NewHttpContext(w, r)
 	//初始化过滤器
-	InitFilter(wsFilterChain)
+	InitFilter(wsFilterChain, httpContext)
 
 	//执行过滤器
 	err := wsFilterChain.DoFilter()
@@ -59,15 +71,14 @@ func run(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//执行
-	servlet(w, r)
+	servlet(w, r, httpContext)
 
 }
 
-func servlet(w http.ResponseWriter, r *http.Request) {
+func servlet(w http.ResponseWriter, r *http.Request, ctx *HttpContext) {
 
 	//1.获取Session && 升级为ws
-	session := NewSession(w, r)
+	session := NewSession(w, r, ctx)
 
 	//2.Create Session Manager
 	sessionManager := InitSessionManager()
@@ -80,7 +91,7 @@ func servlet(w http.ResponseWriter, r *http.Request) {
 	session.Manager = sessionManager
 
 	//5.异步读取信息
-	go session.Read(func(msg WsMessage) error {
+	go session.Read(func(msg *domain.Message) error {
 
 		var err error
 		if msg.MsgType == CloseConn {

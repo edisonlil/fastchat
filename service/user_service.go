@@ -12,14 +12,14 @@ import (
 const MongoColl = "user"
 
 //UserLogin 用户登录
-func UserLogin(user domain.User) *base.Result {
+func UserLogin(user *domain.User) *base.Result {
 
 	res := UserRegister(user)
 
 	if !res.Success {
 		return res
 	}
-	data := res.Data.(domain.User)
+	data := res.Data.(*domain.User)
 
 	token, err := auth.CreateJwtToken(auth.JwtClaims{
 		UserId:    data.Id,
@@ -39,21 +39,21 @@ func UserLogin(user domain.User) *base.Result {
 	})
 }
 
-func UserRegister(user domain.User) *base.Result {
+func UserRegister(user *domain.User) *base.Result {
 
 	data := GetUserByNameSpaceAndOpenId(user.Namespace, user.OpenId)
 
-	if data != nil {
+	if data != nil && data.Id != "" {
 		return base.ResultSuccess().SetData(data)
 	}
 
-	res, err := store.InsertOne(MongoColl, user)
+	id, err := store.InsertOne(MongoColl, user)
 
 	if err != nil {
 		return base.ResultFail().SetMsg(err.Error())
 	}
-
-	return base.ResultSuccess().SetData(res.(domain.User))
+	user.Id = id
+	return base.ResultSuccess().SetData(user)
 }
 
 //GetUserByNameSpaceAndOpenId 获取指定命名空间的OpenId用户
@@ -68,6 +68,7 @@ func GetUserByNameSpaceAndOpenId(namespace string, openId string) *domain.User {
 
 	if err != nil {
 		log.Error(err.Error())
+		return nil
 	}
 
 	return user

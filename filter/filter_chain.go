@@ -1,29 +1,16 @@
 package filter
 
-import (
-	"context"
-	"net/http"
-)
-
-func NewFilterChain(w http.ResponseWriter, r *http.Request) *FilterChain {
+func NewFilterChain() *FilterChain {
 
 	return &FilterChain{
-		Filters:  make([]func(chain *FilterChain) error, 10),
-		Response: w,
-		Request:  r,
+		Filters: make([]func(chain *FilterChain) error, 10),
 	}
 }
 
 //FilterChain 过滤链
+
 type FilterChain struct {
-	Ctx context.Context
-
-	Response http.ResponseWriter
-
-	Request *http.Request
-
 	Filters []func(chain *FilterChain) error //过滤链
-
 }
 
 func (p *FilterChain) DoFilter() error {
